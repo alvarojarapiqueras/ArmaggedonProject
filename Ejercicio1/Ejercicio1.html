@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Documento sin título</title>
+
+<script src="babylon.js"></script>
+<script src="hand.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+<script src="https://preview.babylonjs.com/ammo.js"></script>
+<script src="https://preview.babylonjs.com/cannon.js"></script>
+<script src="https://preview.babylonjs.com/Oimo.js"></script>
+<script src="https://preview.babylonjs.com/earcut.min.js"></script>
+<script src="https://preview.babylonjs.com/babylon.js"></script>
+<script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+<script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+<script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+<script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+<script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+<script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+<script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+<script>
+    function lanzarmeteorito(){
+        var x = parseInt(document.getElementById("x_meteorito").value);
+        var y = parseInt(document.getElementById("y_meteorito").value);
+        var z = parseInt(document.getElementById("z_meteorito").value);
+        //Document.getElementById("x").value,new BABYLON.Vector3(document.getElementById("y").value,new BABYLON.Vector3(document.getElementById("z").value
+        var PuntodeLanzamiento = new BABYLON.Vector3(x,y,z);
+        var Meteorito = new BABYLON.CreateSphere("Meteoro",100,document.getElementById("tamaño").value,Escenario);
+        Meteorito.position = PuntodeLanzamiento;
+        
+    };
+</script> 
+
+</head>
+<body>
+<style>
+    html, body, div, canvas {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+    }
+
+</style>
+
+<div id="DivConCaracterística">
+  <canvas id="Modelado3D"></canvas>
+</div>
+
+<script>
+
+    // Elemento canvas 
+    var ElementoCanvas = document.getElementById("Modelado3D");
+
+    // Cargar BABYLON 3D en las canvas
+    var Motorbabylon = new BABYLON.Engine(ElementoCanvas, true);
+    var Escenario = new BABYLON.Scene(Motorbabylon);
+
+    //Cámara
+    
+    
+    var Camara = new BABYLON.ArcRotateCamera("Camera", 0, 0.8, 10, new BABYLON.Vector3(0,0,0), Escenario);
+    
+          
+    // Luz
+    var RadioSol = 10;
+    var OrbitaSol = 200;
+    var SolStart = new BABYLON.Vector3(0, 0, OrbitaSol);
+    var Luz = new BABYLON.PointLight("sol", new BABYLON.Vector3(0, 0, OrbitaSol-RadioSol-1), Escenario);
+    var Sol = BABYLON.Mesh.CreateSphere("Sol", 100, RadioSol, Escenario);
+    Sol.material = new BABYLON.StandardMaterial("SolMaterial", Escenario);
+    Sol.material.diffuseTexture = new BABYLON.Texture("textures/8k_sun.jpg", Escenario);
+   
+    // elemento 3D (Tierra)
+    var Tierra = BABYLON.Mesh.CreateSphere("tierra", 100, 1, Escenario);
+    Tierra.position = new BABYLON.Vector3(0,0,0);
+    Tierra.material = new BABYLON.StandardMaterial("MaterialTierra", Escenario);
+    Tierra.material.diffuseTexture = new BABYLON.Texture("EarthfromSpace.png", Escenario);
+
+    // Rotacion de la Tierra
+    var GiroTierra = new BABYLON.Animation("Rotacion","rotation.y",0.1,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    var keys = [];
+
+    keys.push({
+        frame: 0,
+        value: 1
+    });
+    keys.push({
+        frame:100,
+        value:360
+    });
+     GiroTierra.setKeys(keys);
+     Tierra.animations.push(GiroTierra);
+     Escenario.beginAnimation(Tierra,0,100,true);
+
+     // Traslacion de la Tierra
+    var CoR_At = new BABYLON.Vector3(0, 0, 0);
+    var axis = new BABYLON.Vector3(0, 1, 0);
+    
+
+    var pivot = new BABYLON.TransformNode("root");
+    pivot.position = CoR_At; 
+    Sol.parent = pivot;
+    Luz.parent = pivot;
+    Sol.position = SolStart;
+
+    var angle = 0.0001;
+
+	Escenario.registerAfterRender(function () { 
+        	pivot.rotate(axis, angle, BABYLON.Space.WORLD);
+            
+          });
+  
+          
+
+    // Cielo
+    var skybox = BABYLON.MeshBuilder.CreateBox("Space", {size:9000}, Escenario);
+     var skyboxMaterial = new BABYLON.StandardMaterial("Spacestars", Escenario);
+     skyboxMaterial.backFaceCulling = false;
+     skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/Space", Escenario);
+     skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+     skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+            skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+            skybox.material = skyboxMaterial;
+       
+
+    // Agregar la cámara al escenario
+    Escenario.activeCamera.attachControl(ElementoCanvas);
+
+    // Agregamos un render del escenario
+    Motorbabylon.runRenderLoop(function() {
+        Escenario.render();
+
+        
+    });
+
+
+
+</script>
+
+    <input type="button" onclick="lanzarmeteorito()" value="Calcular" >
+
+</body>
+</html>
