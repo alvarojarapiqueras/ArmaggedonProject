@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Armaggedon</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6" crossorigin="anonymous">
+        <link rel="icon" type="image/x-icon" href="assets/img/favicon.ico" />
+        <!-- Font Awesome icons (free version)-->
+        <script src="https://use.fontawesome.com/releases/v5.15.1/js/all.js" crossorigin="anonymous"></script>
+        <link href="https://fonts.googleapis.com/css?family=Varela+Round" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet" />
+        <!-- Core theme CSS (includes Bootstrap)-->
+        <link href="static/css/styles.css" rel="stylesheet" />
+        
+
+        <!-- Babylon.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/ammo.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+
+        <!-- Imagenes -->
+
+        
+        
+        
+        
+        <!-- Conexion Servidor -->
+        <script type="text/javascript" src="https://me.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=pw5CFGrjxkYJC0aW-Z9UYg7EnJlhSQP7zn0QOx5YzFfAvpaerGfHx-0mcHfmjQrZEFEDsk2g0J9sO8aoH_y6xeH_N61E4qELlFRDc4V_y4EvwVvsCyunsaRbYVld-u9NK3mV3lauBbhWAp9Bpr0a1baky4P2dGFbJZIVhmtvJhxBvGD6l0f8c6If-ewQm7fyWQTfhrGPTWF_nlDjLeLjvs7InqGnj3PjmxkIEMPLMGPrIzALHevjy3pXR7mVWgDFwPjgkMQFQS_ZHePaKJURo5ItkrCRg3f3hYSausybvF1X3h6Tp8jeMbZGY9oH51Wch4gK1LbT3jDzgym-2RIwJzakw1XCO5JuMi0mpcGWDSTsI61hR3NqXhHLxlqovgUjYuMDOLANPgJs0FwtoY-pShaIWUvkSHRseub3htUs9d4zI4vrSm4uyYgoEG769BrU2VWlj_t36ZFZGlQX3hXC8Q" charset="UTF-8"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.js" integrity="sha512-aMGMvNYu8Ue4G+fHa359jcPb1u+ytAF+P2SCb+PxrjCdO3n3ZTxJ30zuH39rimUggmTwmh2u7wvQsDTHESnmfQ==" crossorigin="anonymous"></script>
+        <script type="text/javascript" charset="utf-8">
+
+            var MatrizMovimiento = [];
+            var PuntodeImpacto = [];
+            var trayectoriamisil = [];
+            var Orix = [];
+            var Oriy = [];
+            var Oriz = [];
+
+            $(document).ready(function() {
+                var socket = io();
+                
+                socket.on('connect', function() {
+                    socket.emit('my event', {data: 'I\'m connected!'});
+                });
+                
+                socket.on('my_response', function(msg, cb) {
+                    //$('#log').append('<br>' + $('<div/>').text(msg.impacto).html());
+                     PuntodeImpacto=msg.impacto;
+                     MatrizMovimiento=msg.pos_meteo;
+                     trayectoriamisil=msg.pos_misil;
+                     Orix=msg.dir_x;
+                     Oriy=msg.dir_y;
+                     Oriz=msg.dir_z;
+                     
+                     Orix[Orix.length]=Orix[Orix.length-1];  
+                     Oriy[Oriy.length]=Oriy[Oriy.length-1]; 
+                     Oriz[Oriz.length]=Oriz[Oriz.length-1];      
+
+                    if (cb)
+                        cb();
+                });
+    
+                $('form#emit').submit(function(event) {
+                    socket.emit('my_event', {x0: $('#emit_data1').val(), y0: $('#emit_data2').val(), z0: $('#emit_data3').val(),  v0: $('#emit_data4').val()});
+                    
+                    return false;
+                });
+            });    
+        </script>
+
+
+
+       
+    </head>
+<body>
+
+    
+    
+    <!-- Simulación gráfica-->
+    <section class="projects-section bg-light" id="projects">
+        <div class="container">
+            <!-- Featured Project Row FORMULARIO-->
+            <form  class="form-inline"  action="">
+                <div class="form-group">
+                    <label for="posicionmeteorito" class="control-label col-md-3">Posición inicial del meteorito</label>
+                    
+                    
+                    <div class="col-md-3">
+                        <input class="form-control" name="emit_data1" id="emit_data1"  placeholder="Posicion X">
+
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" name="emit_data2" id="emit_data2"  placeholder="Posicion Y">
+
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" name="emit_data3" id="emit_data3"  placeholder="Posicion Z">
+
+                    </div>
+                    <div class="col-md-3">
+                        <input class="form-control" name="emit_data4" id="emit_data4"  placeholder="Velocidad (m/s)">
+
+                    </div>
+                
+                    
+                    
+                </div>
+            </form>
+            <br>
+            <form id="emit" method="POST" action='#'>
+            <div class="row clearfix">
+                <div class="col-md-1">
+                   
+                      <input type="submit" id="botonn" value="Calcular"> 
+                      <input type="button" id="boton" value="Play">   
+                       
+                   
+                </div>
+                
+            </div>
+            </form>
+            <!-- Project One Row-->
+            <div class="row justify-content-center no-gutters mb-5 mb-lg-0">
+                
+                <div class="col-lg-12">
+                    <div id="Espacio">
+                        <canvas id="renderCanvas">
+                        </canvas>
+                    </div>
+                </div>
+            </div>
+           
+            
+        </div>
+    </section>
+
+    
+
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        ///// Codigo para evitar que el scrollbar se mueva al hacer zoom en el canvas Babylon////
+        document.getElementById( "renderCanvas" ).onwheel = function(event){
+        event.preventDefault();
+         };
+    
+        document.getElementById( "renderCanvas" ).onmousewheel = function(event){
+        event.preventDefault();
+         };
+        /////////////////////////////////////////////////////////////////////////////////////777/
+      
+        var MotorBabylon = null;
+        var Escenario = null;
+        var sceneToRender = null;
+        var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
+        var createScene = function () {
+            var Escenario = new BABYLON.Scene(MotorBabylon);
+        
+            var camera = new BABYLON.ArcRotateCamera("Camera", 1, 0.8, 10, new BABYLON.Vector3(0, 0, 0), Escenario);
+            camera.attachControl(canvas, true);
+
+            //Funcion Meteorito
+            document.getElementById("boton").addEventListener("click",function () {
+                    
+     
+                    
+                    //Meteorito
+                    var TamañoMeteorito=0.5;
+                    Meteorito.visibility=1;
+                    Bomba.visibility=1;
+                    
+                    
+                    //Fuego en el Meteorito
+                
+                    // BABYLON.ParticleHelper.CreateAsync("fire", Escenario).then((set) => {
+                    // set.start();
+                    // set.emitterNode=Meteorito.position;
+                    // });
+                 
+
+                    //Luz del meteorito
+                    // var PuntodeLuz = new BABYLON.Vector3(10000-TamañoMeteorito,10000-TamañoMeteorito,10000-TamañoMeteorito);                    
+                    // var LuzMeteorito = new BABYLON.PointLight("luzmeteorito",PuntodeLuz, Escenario);
+                    // LuzMeteorito.parent=Meteorito;
+
+                    //Luz de impacto
+                     
+                     LuzTierra.specular = new BABYLON.Color3(1, 0, 0);
+                     LuzTierra.position = new BABYLON.Vector3(PuntodeImpacto[0]+0.2,PuntodeImpacto[1]+0.2,PuntodeImpacto[2]+0.2);
+                     LuzTierra.visibility=1;
+                    // ACTIVAR CUANDO HAGAMOS LA CONEXION CON PYTHON!!! (Todavia no tenemos ninguna variable llamada PuntoImpacto)
+
+                    
+            
+                    //var PuntodeLanzamientoMisil=new BABYLON.Vector3(1,1,1);
+                    //Bucle de asignacion de la trayectoria y direccion del misil
+                    var keysxmeteo = [];
+                    var keysymeteo = [];
+                    var keyszmeteo = [];
+                    var Meteoritofallx = new BABYLON.Animation("CaidaMeteorito","position.x",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    var Meteoritofally = new BABYLON.Animation("CaidaMeteorito","position.y",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    var Meteoritofallz = new BABYLON.Animation("CaidaMeteorito","position.z",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    var t;
+                    var tv;
+
+                    for (let step = 0; step < MatrizMovimiento.length; step++) {
+                        tv= 10/trayectoriamisil.length;
+                        t=step*tv;
+                    keysxmeteo.push({
+                         frame: t,
+                         value: MatrizMovimiento[step][0]
+                    });
+                    keysymeteo.push({
+                         frame: t,
+                         value: MatrizMovimiento[step][1]
+                    });
+                    keyszmeteo.push({
+                         frame: t,
+                         value: MatrizMovimiento[step][2]
+                    });
+                }
+                    Meteoritofallx.setKeys(keysxmeteo);
+                    Meteorito.animations.push(Meteoritofallx);
+                    Meteoritofally.setKeys(keysymeteo);
+                    Meteorito.animations.push(Meteoritofally);
+                    Meteoritofallz.setKeys(keyszmeteo);
+                    Meteorito.animations.push(Meteoritofallz);
+                    //Escenario.beginAnimation(Meteorito,0,100,true);
+                    var animationGroup = new BABYLON.AnimationGroup("my group");
+                
+                    //Grupo de animacion para la luz del meteorito , cambiar el nombre del grupo de animacion
+                    animationGroup.addTargetedAnimation(Meteoritofallx, Meteorito);
+                    animationGroup.addTargetedAnimation(Meteoritofally, Meteorito);
+                    animationGroup.addTargetedAnimation(Meteoritofallz, Meteorito);
+                                        
+
+                    //Bucle de asignacion de la trayectoria y direccion del misil
+                    var keysxrocket = [];
+                    var keysyrocket = [];
+                    var keyszrocket = [];
+                    var keysxorientation = [];
+                    var keysyorientation = [];
+                    var keyszorientation = [];
+                    var t=0;
+                    var Misilfallx = new BABYLON.Animation("CaidaMisilx","position.x",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    var Misilfally = new BABYLON.Animation("CaidaMisily","position.y",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    var Misilfallz = new BABYLON.Animation("CaidaMisilz","position.z",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+
+                    // var Misilrotx = new BABYLON.Animation("rotx","rotation.x",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    // var Misilroty = new BABYLON.Animation("roty","rotation.y",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    // var Misilrotz = new BABYLON.Animation("rotz","rotation.z",0.5,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                    
+                    
+
+                    for (let step = 0; step < trayectoriamisil.length; step++) {
+                        tv= 10/trayectoriamisil.length;
+                        t=step*tv;
+                    keysxrocket.push({
+                         frame: t,
+                         value: trayectoriamisil[step][0]
+                    });
+                    keysyrocket.push({
+                         frame: t,
+                         value: trayectoriamisil[step][1]
+                    });
+                    keyszrocket.push({
+                         frame: t,
+                         value: trayectoriamisil[step][2]
+                    });
+                }
+                
+                // for (let step = 0; step < Orix.length; step++) {
+                //         tv= 10/trayectoriamisil.length;
+                //         t=step*tv;
+
+                //     keysxorientation.push({
+                //          frame: t,
+                //          value: Orix[step]
+                //     });
+                //     keysyorientation.push({
+                //          frame: t,
+                //          value: Oriy[step]
+                //     });
+                //     keyszorientation.push({
+                //          frame: t,
+                //          value: Oriz[step]
+                //     });
+                // }
+                    
+                    
+                    Misilfallx.setKeys(keysxrocket);
+                    Misil.animations.push(Misilfallx);
+                    Misilfally.setKeys(keysyrocket);
+                    Misil.animations.push(Misilfally);
+                    Misilfallz.setKeys(keyszrocket);
+                    Misil.animations.push(Misilfallz);
+
+                    // Misilrotx.setKeys(keysxorientation);
+                    // Misil.animations.push(Misilrotx);
+                    // Misilroty.setKeys(keysyorientation);
+                    // Misil.animations.push(Misilroty);
+                    // Misilrotz.setKeys(keyszorientation);
+                    // Misil.animations.push(Misilrotz);
+                    
+                    
+
+                
+                    //Grupo de animacion para la luz del misil , cambiar el nombre del grupo de animacion
+
+                    animationGroup.addTargetedAnimation(Misilfallx, Bomba);
+                    animationGroup.addTargetedAnimation(Misilfally, Bomba);
+                    animationGroup.addTargetedAnimation(Misilfallz, Bomba);
+
+                    // animationGroup.addTargetedAnimation(Misilrotx, Misil);
+                    // animationGroup.addTargetedAnimation(Misilroty, Misil);
+                    // animationGroup.addTargetedAnimation(Misilrotz, Misil);
+                    
+
+                    
+            // Make sure to normalize animations to the same timeline
+                    animationGroup.normalize(0, 10);
+                    animationGroup.play(true);
+               });
+            
+
+               ////////////////////////////////////////////////
+              
+             
+
+             
+             
+           //////////////////////////////////////////////////
+
+
+            var Meteorito = BABYLON.Mesh.CreateSphere("Meteoro",100,0.5,Escenario);
+            Meteorito.material = new BABYLON.StandardMaterial("matmet", Escenario);
+            Meteorito.visibility=0;
+            Meteorito.material.diffuseTexture = new BABYLON.Texture("/static/textures/meteorito.jpg",Escenario);
+
+            var Misil = BABYLON.Mesh.CreateSphere("Misil",100,0.5,Escenario);
+            Misil.material = new BABYLON.StandardMaterial("matmet", Escenario);
+            Misil.visibility=0;
+
+            var LuzTierra = new BABYLON.PointLight("luztierra",PuntodeImpacto, Escenario);
+            LuzTierra.visibility=0;
+
+            var RadioSol=100;
+            var OrbitaSol=500;
+            var SolStart = new BABYLON.Vector3(0, 0, OrbitaSol);
+            var LuzSol = new BABYLON.PointLight("luzsol", new BABYLON.Vector3(0, 0, OrbitaSol-RadioSol-1), Escenario);
+            
+            var Sol = BABYLON.Mesh.CreateSphere("Sol", 100, RadioSol, Escenario);
+            Sol.material = new BABYLON.StandardMaterial("SolMaterial", Escenario);
+            Sol.material.diffuseTexture = new BABYLON.Texture("static/textures/8k_sun.jpg", Escenario);
+
+                
+            var Tierra = BABYLON.Mesh.CreateSphere("tierra", 100, 2, Escenario);
+            PuntoTierra = new BABYLON.Vector3(0,0,0);
+            Tierra.position = PuntoTierra;
+            Tierra.material = new BABYLON.StandardMaterial("MaterialTierra", Escenario);
+            Tierra.material.diffuseTexture = new BABYLON.Texture('static/EarthfromSpace.png', Escenario);
+
+            
+
+            //////////////////////////////////////////////////////////////////////
+
+            var mat1 = new BABYLON.StandardMaterial('mat1', Escenario);
+            
+
+            var Scale = 0.3;
+
+            var sphere = BABYLON.MeshBuilder.CreateSphere("sphere1", {diameter: 2, segments: 16}, Escenario);
+            sphere.material = mat1;
+            sphere.position.y = 0;
+
+            const cone = BABYLON.MeshBuilder.CreateCylinder("cylinder", {diameter:2},Escenario);
+            cone.material = mat1;
+            cone.position = new BABYLON.Vector3(0,1,0);
+            cone.scaling.x = Scale;
+            cone.scaling.y = Scale;
+            cone.scaling.z = Scale;
+
+            var Bomba = BABYLON.Mesh.MergeMeshes([sphere, cone]);
+            Bomba.scaling.x=0.2;
+            Bomba.scaling.y=0.2;
+            Bomba.scaling.z=0.2;
+            Bomba.position=new BABYLON.Vector3(0,2,0);
+            Bomba.rotation.z=-0.5;
+            Bomba.position.y=3;
+            Bomba.material.diffuseTexture = new BABYLON.Texture("static/textures/logo-politecnica.jpg", Escenario);
+            Bomba.visibility=0;
+            ////////////////////////////////////////////////////
+            
+           
+            var GiroTierra = new BABYLON.Animation("Rotacion","rotation.y",0.1,BABYLON.Animation.ANIMATIONTYPE_FLOAT,BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+            var keys = [];
+
+            keys.push({
+             frame: 0,
+             value: 1
+            });
+            keys.push({
+             frame:5,
+             value:2*Math.PI
+            });
+             GiroTierra.setKeys(keys);
+             Tierra.animations.push(GiroTierra);
+             Escenario.beginAnimation(Tierra,0,5,true);
+             
+
+     
+            var CentrodeGiro = new BABYLON.Vector3(0, 0, 0);
+            var axis = new BABYLON.Vector3(0, 1, 0);
+    
+
+            var pivot = new BABYLON.TransformNode("root");
+            pivot.position = CentrodeGiro; 
+            Sol.parent = pivot;
+            LuzSol.parent = pivot;
+            Sol.position = SolStart;
+            
+
+            ////// PANTALLA DE CARGA DE GANAR Y PERDER //////
+            /// GANAR ///
+            
+            // var PantallaDerrota = new BABYLON.Mesh.CreatePlane("derrota",10,Escenario);
+            // PantallaDerrota.position= new BABYLON.Vector3(0,0,2);
+            // PantallaDerrota.material = new BABYLON.StandardMaterial("MaterialPlano", Escenario);
+            // PantallaDerrota.material.backFaceCulling = false;
+            // PantallaDerrota.material.diffuseTexture = new BABYLON.Texture("textures/TheEnd.jpg", Escenario);
+            // PantallaDerrota.visibility=0;
+
+
+
+            //PantallaDerrota.parent=camera;
+            // var PosicionPlano = function() {        var forward = new BABYLON.Vector3(camera.position.x -(camera.position.x)/2, camera.position.y-(camera.position.y)/2, camera.position.z -(camera.position.z)/2);     return forward; };
+            // PantallaDerrota.position=PosicionPlano;
+            
+
+        
+
+
+
+            //Boton play
+            var advanceTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("myUI");
+            //var play = BABYLON.GUI.Button.CreateSimpleButton("Play Button", "PLAY");
+            //play.width = "90px";
+            //play.height = "40px";
+            //play.color = "white";
+            //play.background = "transparent";
+            //play.left = "30%";
+            //play.top = "40%";
+            //play.cornerRadius = 2;
+        
+            //play.onPointerEnterObservable.add(function () {
+              //  play.background = "yellow";
+            //});
+        
+            //play.onPointerOutObservable.add(function () {
+              //  play.background = "transparent";
+            //});
+
+
+
+            //Boton sonido
+            var sound = BABYLON.GUI.Button.CreateSimpleButton("Sound", "MUSIC");
+            sound.width = "90px";
+            sound.height = "40px";
+            sound.color = "white";
+            sound.background = "transparent";
+            sound.left = "40%";
+            sound.top = "40%";
+            sound.cornerRadius = 2;
+        
+            sound.onPointerEnterObservable.add(function () {
+                sound.background = "yellow";
+            });
+        
+            sound.onPointerOutObservable.add(function () {
+                sound.background = "transparent";
+            });
+
+            sound.onPointerClickObservable.add(function (meshes) {
+                if(sound) {
+                var music = new BABYLON.Sound("Music", "static/music.mp3", Escenario, function(){
+                      music.play();
+                    })
+                }
+            })
+
+            var Derrota=0;
+
+            var angle = 0.0005;
+                Escenario.registerBeforeRender(function () {
+                    
+                    pivot.rotate(axis, angle, BABYLON.Space.WORLD);
+                    
+                    ///////////// Pantallas de Victoria y Derrota  ///////////////////
+
+                    
+                    
+                   
+                    
+                    if (Meteorito.intersectsMesh(Tierra, false)) {
+                        
+                        
+                        Derrota=1;
+                        Meteorito.position=new BABYLON.Vector3(10,10,10);
+                        Meteorito.visibility=0;
+                        LuzTierra.visibility=0;
+                        // PantallaDerrota.visibility=1;
+                        BABYLON.ParticleHelper.CreateAsync("explosion", Escenario).then((set) => {
+                          set.systems.forEach(s => {
+                          s.disposeOnStop = true;
+                          });
+                          set.emitterNode=new BABYLON.Vector3(PuntodeImpacto[0],PuntodeImpacto[1],PuntodeImpacto[2]);
+                          set.start();
+                          });
+                     
+                    } else if (Meteorito.intersectsMesh(Bomba, false)) {
+                        Derrota=0;
+                        Meteorito.position=new BABYLON.Vector3(5,5,5);
+                        Meteorito.visibility=0;
+                        Bomba.visibility=0;
+                        LuzTierra.visibility=0;
+                        BABYLON.ParticleHelper.CreateAsync("explosion", Escenario).then((set) => {
+                          set.systems.forEach(s => {
+                          s.disposeOnStop = true;
+                          });
+                          set.emitterNode=new BABYLON.Vector3(PuntodeImpacto[0],PuntodeImpacto[1],PuntodeImpacto[2]);
+                          set.start();
+                          });
+
+                        // var dir = camera.getTarget().subtract(camera.position);dir.normalize();dir.scaleInPlace(7);
+                        // PantallaVictoria.position=camera.position.add(dir);
+                        
+                    }
+
+                });
+            
+              
+                         
+    
+               
+       
+        
+      
+        
+            
+            /////////////////////////////// FONDO ESPACIAL ///////////////////////////////////
+         
+            var skybox = BABYLON.MeshBuilder.CreateBox("Space", {size:9000}, Escenario);
+            var skyboxMaterial = new BABYLON.StandardMaterial("Spacestars", Escenario);
+            skyboxMaterial.backFaceCulling = false;
+            skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("static/textures/Space", Escenario);
+            skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+            skyboxMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+                 skyboxMaterial.specularColor = new BABYLON.Color3(0, 0, 0);
+                 skybox.material = skyboxMaterial;
+       
+                 skybox.parent = pivot;
+    
+
+            //advanceTexture.addControl(play);
+            advanceTexture.addControl(sound);
+           
+
+            
+            
+        
+            
+        
+         
+        
+        
+            return  Escenario;
+        }
+            
+
+                var MotorBabylon;
+                var Escenario;
+                initFunction = async function() {               
+                    var asyncEngineCreation = async function() {
+                        try {
+                        return createDefaultEngine();
+                        } catch(e) {
+                        console.log("the available createEngine function failed. Creating the default engine instead");
+                        return createDefaultEngine();
+                        }
+                    }
+
+                    MotorBabylon = await asyncEngineCreation();
+        if (!MotorBabylon) throw 'engine should not be null.';
+        Escenario = createScene();};
+        initFunction().then(() => {sceneToRender = Escenario        
+            MotorBabylon.runRenderLoop(function () {
+                if (sceneToRender && sceneToRender.activeCamera) {
+                    sceneToRender.render();
+                }
+            });
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            MotorBabylon.resize();
+        });
+    </script>
+</body>
+</html>
